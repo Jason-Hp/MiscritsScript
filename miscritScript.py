@@ -1,13 +1,45 @@
 import pyautogui
 import time
 from playsound import playsound
+import pytesseract
+from rapidfuzz import fuzz
 
-#Miscrit you are looking for
-miscrit = 'PERFECT.png'
+
+#Miscrit name you are looking for in lower case
+MISCRIT = "nessy"
+
 #Which location to click to search for miscrit 961 516 Bflower
 LOCATION_TO_FIND = (959,519)
 
-battle = 'realBattle.png'
+MISCRIT_NAME_LOCATION = (938, 97, 65, 13)
+
+CONTINUE_AFTER_BATTLE = (675, 685)
+
+BATTLE_ABILITY_NAME = "bastion"
+BATTLE_ABILITY_LOCATION = (540, 730, 100, 25)
+SAFE_ABILITY_LOCATION = (550, 735)
+
+ABILITY_TO_USE_LOCATION = (345,735)
+
+LEVEL_UP_BOTTOM_LEFT = (370, 460, 100, 14)
+LEVEL_UP_TOP_RIGHT = (540, 350, 100, 14)
+LEVEL_UP_BOTTOM_RIGHT = (540, 460, 100, 14)
+LEVEL_CHECKER = [LEVEL_UP_BOTTOM_RIGHT,LEVEL_UP_BOTTOM_LEFT, LEVEL_UP_TOP_RIGHT]
+READY_TO_TRAIN = "ready to train"
+
+
+TRAIN_LOCATION = (593, 109)
+FIRST_MISCRIT_TO_TRAIN = (405, 250)
+SECOND_MISCRIT_TO_TRAIN = (405, 300)
+THIRD_MISCRIT_TO_TRAIN = (405, 350)
+
+MISCRITS_TO_BE_TRAINED = [FIRST_MISCRIT_TO_TRAIN, SECOND_MISCRIT_TO_TRAIN, THIRD_MISCRIT_TO_TRAIN]
+
+TRAIN_NOW_BUTTON_LOCATION = (690, 165)
+TRAIN_CONTINUE = (809, 734)
+NEW_SKILL_CONTINUE = (803, 569)
+EXIT_TRAIN = (1030, 130)
+
 
 def click(x, y):
     pyautogui.moveTo(x,y)
@@ -15,67 +47,85 @@ def click(x, y):
     time.sleep(0.03)
     pyautogui.mouseUp()
 
-def check():
-    try:
-        location = pyautogui.locateOnScreen(miscrit, region=(1126,63, 40, 40), grayscale=True, confidence=0.55)
-        if location:
-            return True
-        else:
-            return False
-    except pyautogui.ImageNotFoundException:
-        return False
+def checker(region, comparator):
+    screenshot = pyautogui.screenshot(region=region)
 
-def inBattle():
-    try:
-        location = pyautogui.locateOnScreen(battle, region=(635,987, 140, 60), grayscale=True, confidence=0.4)
-        if location:
-            return True
-        else:
-            return False
-    except pyautogui.ImageNotFoundException:
-        return False
-
-def doBattle():
-    click(722,1022)
-    time.sleep(10)
+    obtained_string = pytesseract.image_to_string(screenshot, config='--psm 6').strip().lower()
+    print(comparator+" : "+obtained_string+" -> "+fuzz.ratio(obtained_string, comparator))
     
-
-file = open("count.txt","r")
-count = int(file.readline())
-file.close()
-
-time.sleep(5)
-while True:
-    count = count+1
-    print(count)
-    file = open("count.txt","w")
-    file.write(str(count))
-    file.close()
-    click(LOCATION_TO_FIND[0],LOCATION_TO_FIND[1])
-    time.sleep(7)
-    if check():
-        print("FOUND!")
-        playsound('sound.mp3')
-        while True:
-            click(884,1015)
-            time.sleep(10)
-        break
-    if inBattle():
-        while(inBattle()):
-            if check():
-                print("FOUND!")
-                playsound('sound.mp3')
-                while True:
-                    click(884,1015)
-                    time.sleep(10)
-                break            
-            doBattle()
-        click(955,798)
-        time.sleep(5)
+    if (fuzz.ratio(obtained_string, comparator)>70):
+        return True
     else:
-        time.sleep(15)
+        return False
 
+def do_battle():
+    click(ABILITY_TO_USE_LOCATION[0], ABILITY_TO_USE_LOCATION[1])
+    time.sleep(8)
+    
+def check_all_level_up_ready(level_checker):
+    for location in level_checker:
+        if not checker(location, READY_TO_TRAIN):
+            return False
+    return True
 
+def perform_level_up():
+    click(TRAIN_LOCATION[0], TRAIN_LOCATION[1])
+    time.sleep(2)
 
+    for i in MISCRITS_TO_BE_TRAINED:
+        click(i[0], i[1])
+        time.sleep(1)
 
+        click(TRAIN_NOW_BUTTON_LOCATION[0], TRAIN_NOW_BUTTON_LOCATION[1])
+        time.sleep(2)
 
+        click(TRAIN_CONTINUE[0], TRAIN_CONTINUE[1])
+        click(TRAIN_CONTINUE[0], TRAIN_CONTINUE[1])
+        time.sleep(5)
+
+        click(NEW_SKILL_CONTINUE[0], NEW_SKILL_CONTINUE[1])
+        time.sleep(1)
+    
+    click(EXIT_TRAIN[0], EXIT_TRAIN[1])
+    time.sleep(3)
+
+def main():
+    file = open("count.txt","r")
+    count = int(file.readline())
+    file.close()
+
+    time.sleep(5)
+    while True:
+        all_ready = False
+
+        count = count+1
+        print(count)
+        file = open("count.txt","w")
+        file.write(str(count))
+        file.close()
+
+        click(LOCATION_TO_FIND[0],LOCATION_TO_FIND[1])
+        time.sleep(7)
+
+        if checker(BATTLE_ABILITY_LOCATION, BATTLE_ABILITY_NAME):
+            while(checker(BATTLE_ABILITY_LOCATION, BATTLE_ABILITY_NAME)):
+                if checker(MISCRIT_NAME_LOCATION, MISCRIT):
+                    print("FOUND!")
+                    playsound('sound.mp3')
+                    while True:
+                        click(SAFE_ABILITY_LOCATION[0], SAFE_ABILITY_LOCATION[1])
+                        time.sleep(10)   
+                do_battle()
+            
+            time.sleep(5)
+            all_ready = check_all_level_up_ready(LEVEL_CHECKER)
+            click(CONTINUE_AFTER_BATTLE[0] ,CONTINUE_AFTER_BATTLE[1])
+            time.sleep(5)
+
+            if(all_ready):
+                perform_level_up()
+            
+        else:
+            time.sleep(20)
+
+main()
