@@ -3,13 +3,14 @@ import time
 from playsound import playsound
 import pytesseract
 from rapidfuzz import fuzz
+import pygame
 
 
 #Miscrit name you are looking for in lower case
-MISCRIT = "nessy"
+MISCRIT = "daniwun123"
 
 #Which location to click to search for miscrit 961 516 Bflower
-LOCATION_TO_FIND = (959,519)
+LOCATION_TO_FIND = (659,349)
 
 MISCRIT_NAME_LOCATION = (938, 97, 65, 13)
 
@@ -35,6 +36,10 @@ THIRD_MISCRIT_TO_TRAIN = (405, 350)
 
 MISCRITS_TO_BE_TRAINED = [FIRST_MISCRIT_TO_TRAIN, SECOND_MISCRIT_TO_TRAIN, THIRD_MISCRIT_TO_TRAIN]
 
+MISCRIT_EVOLVED = (740,205,110,25)
+EVOLUTION = "evolution"
+EVOLUTION_CLOSE = (668,693)
+
 TRAIN_NOW_BUTTON_LOCATION = (690, 165)
 TRAIN_CONTINUE = (809, 734)
 NEW_SKILL_CONTINUE = (803, 569)
@@ -51,7 +56,7 @@ def checker(region, comparator):
     screenshot = pyautogui.screenshot(region=region)
 
     obtained_string = pytesseract.image_to_string(screenshot, config='--psm 6').strip().lower()
-    print(comparator+" : "+obtained_string+" -> "+fuzz.ratio(obtained_string, comparator))
+    print(comparator+" : "+obtained_string+" -> "+str(fuzz.ratio(obtained_string, comparator)))
     
     if (fuzz.ratio(obtained_string, comparator)>70):
         return True
@@ -85,6 +90,10 @@ def perform_level_up():
 
         click(NEW_SKILL_CONTINUE[0], NEW_SKILL_CONTINUE[1])
         time.sleep(1)
+
+        if checker(MISCRIT_EVOLVED, EVOLUTION):
+            click(EVOLUTION_CLOSE[0], EVOLUTION_CLOSE[1])
+            time.sleep(2)
     
     click(EXIT_TRAIN[0], EXIT_TRAIN[1])
     time.sleep(3)
@@ -111,7 +120,10 @@ def main():
             while(checker(BATTLE_ABILITY_LOCATION, BATTLE_ABILITY_NAME)):
                 if checker(MISCRIT_NAME_LOCATION, MISCRIT):
                     print("FOUND!")
-                    playsound('sound.mp3')
+                    pygame.mixer.init()
+                    pygame.mixer.music.load("/home/vboxuser/Desktop/MiscritsScript/sound.mp3")
+                    pygame.mixer.music.play()
+                    time.sleep(2)
                     while True:
                         click(SAFE_ABILITY_LOCATION[0], SAFE_ABILITY_LOCATION[1])
                         time.sleep(10)   
@@ -125,6 +137,19 @@ def main():
             if(all_ready):
                 perform_level_up()
             
+            if_close = True
+            while if_close:
+                try:
+                    close_location = pyautogui.locateOnScreen('/home/vboxuser/Desktop/MiscritsScript/close.png', confidence=0.8, grayscale=True)
+                    if(close_location):
+                        print("need closing")
+                        pyautogui.click(close_location)
+                    else:
+                        if_close = False
+                except:
+                    if_close = False
+
+
         else:
             time.sleep(20)
 
