@@ -1,18 +1,17 @@
 import pyautogui
 import time
-from playsound import playsound
 import pytesseract
 from rapidfuzz import fuzz
 import pygame
 
 
 #Miscrit name you are looking for in lower case
-MISCRIT = "daniwun123"
+MISCRIT = "dorux"
 
-#Which location to click to search for miscrit 961 516 Bflower
-LOCATION_TO_FIND = (659,349)
+#Which location to click to search for miscrit
+LOCATION_TO_FIND = (709,480)
 
-MISCRIT_NAME_LOCATION = (938, 97, 65, 13)
+MISCRIT_NAME_LOCATION = (935, 97, 105, 13)
 
 CONTINUE_AFTER_BATTLE = (675, 685)
 
@@ -36,11 +35,9 @@ THIRD_MISCRIT_TO_TRAIN = (405, 350)
 
 MISCRITS_TO_BE_TRAINED = [FIRST_MISCRIT_TO_TRAIN, SECOND_MISCRIT_TO_TRAIN, THIRD_MISCRIT_TO_TRAIN]
 
-MISCRIT_EVOLVED = (740,205,110,25)
-EVOLUTION = "evolution"
 EVOLUTION_CLOSE = (668,693)
 
-TRAIN_NOW_BUTTON_LOCATION = (690, 165)
+TRAIN_NOW_BUTTON_LOCATION = (710, 160)
 TRAIN_CONTINUE = (809, 734)
 NEW_SKILL_CONTINUE = (803, 569)
 EXIT_TRAIN = (1030, 130)
@@ -56,7 +53,12 @@ def checker(region, comparator):
     screenshot = pyautogui.screenshot(region=region)
 
     obtained_string = pytesseract.image_to_string(screenshot, config='--psm 6').strip().lower()
-    print(comparator+" : "+obtained_string+" -> "+str(fuzz.ratio(obtained_string, comparator)))
+    
+    if (comparator == MISCRIT):
+        file = open("log.txt","a")
+        file.write("\n"+obtained_string)
+        file.close()
+    
     
     if (fuzz.ratio(obtained_string, comparator)>70):
         return True
@@ -91,9 +93,16 @@ def perform_level_up():
         click(NEW_SKILL_CONTINUE[0], NEW_SKILL_CONTINUE[1])
         time.sleep(1)
 
-        if checker(MISCRIT_EVOLVED, EVOLUTION):
-            click(EVOLUTION_CLOSE[0], EVOLUTION_CLOSE[1])
-            time.sleep(2)
+        try:
+            evolution = pyautogui.locateOnScreen('/home/vboxuser/Desktop/MiscritsScript/evolution.png', confidence=0.8, grayscale=True)
+            if(evolution):
+                print("close evolution")
+                click(EVOLUTION_CLOSE[0], EVOLUTION_CLOSE[1])
+                time.sleep(2)
+            else:
+                print("no evolution")
+        except:
+            print("no evolution")
     
     click(EXIT_TRAIN[0], EXIT_TRAIN[1])
     time.sleep(3)
@@ -144,6 +153,7 @@ def main():
                     if(close_location):
                         print("need closing")
                         pyautogui.click(close_location)
+                        time.sleep(3)
                     else:
                         if_close = False
                 except:
