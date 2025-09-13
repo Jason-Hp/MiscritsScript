@@ -7,13 +7,13 @@ import pygame
 
 #Bonus
 BONUS = False
-#BONUS_LOCATION = (705,750)
+BONUS_LOCATION = (705,750)
 
 #Miscrit name you are looking for in lower case
-MISCRIT = "light ignios"
+MISCRIT = "papa"
 
 #Which location to click to search for miscrit
-LOCATION_TO_FIND = (649,511)
+LOCATION_TO_FIND = (653, 239)
 
 CAPTURE_RATE = (644,206,55,22)
 
@@ -134,16 +134,17 @@ def perform_level_up():
         click(TRAIN_NOW_BUTTON_LOCATION[0], TRAIN_NOW_BUTTON_LOCATION[1])
         time.sleep(2)
 
-        click(TRAIN_CONTINUE[0], TRAIN_CONTINUE[1])
-        click(TRAIN_CONTINUE[0], TRAIN_CONTINUE[1])
-
+        click(BONUS_LOCATION[0], BONUS_LOCATION[1])
+        click(BONUS_LOCATION[0], BONUS_LOCATION[1])
+        time.sleep(3)
+        click(BONUS_LOCATION[0], BONUS_LOCATION[1])
         time.sleep(5)
 
         click(NEW_SKILL_CONTINUE[0], NEW_SKILL_CONTINUE[1])
         time.sleep(4)
 
         try:
-            evolution = pyautogui.locateOnScreen('/home/vboxuser/Desktop/MiscritsScript/evolution.png', confidence=0.8, grayscale=True)
+            evolution = pyautogui.locateOnScreen('/home/vboxuser/Desktop/MiscritsScript/evolution.png', confidence=0.7, grayscale=True)
             if(evolution):
                 print("close evolution")
                 click(EVOLUTION_CLOSE[0], EVOLUTION_CLOSE[1])
