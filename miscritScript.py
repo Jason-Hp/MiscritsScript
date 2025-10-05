@@ -3,16 +3,34 @@ import time
 import pytesseract
 from rapidfuzz import fuzz
 import pygame
+try:
+    import pygetwindow as gw  # For window size/position
+except ImportError:
+    gw = None
 
 
-#Bonus
+# Config: coordinate mode
+# If True, use percentage-based coordinates relative to the game window
+# If False, use absolute pixel coordinates (existing behavior)
+USE_RELATIVE_COORDS = False
+
+# Window selection: set a part of the window title to match (case-insensitive)
+# Example: "Miscrits" or the browser tab title where the game runs.
+# If empty or no match found, active/foreground window will be used.
+WINDOW_TITLE_SUBSTRING = ""
+
+# Internal cache for window bounds (left, top, width, height)
+WINDOW_BOUNDS = None
+
+
+# Bonus
 BONUS = False
 BONUS_LOCATION = (705,750)
 
 #Miscrit name you are looking for in lower case
 MISCRIT = "papa"
 
-#Which location to click to search for miscrit
+# Which location to click to search for miscrit
 LOCATION_TO_FIND = (653, 239)
 
 CAPTURE_RATE = (644,206,55,22)
@@ -53,14 +71,93 @@ NEW_SKILL_CONTINUE = (803, 569)
 EXIT_TRAIN = (1030, 130)
 
 
+# =============================
+# Relative coordinate utilities
+# =============================
+
+def _find_game_window_bounds():
+    global WINDOW_BOUNDS
+    # If already computed, return cached
+    if WINDOW_BOUNDS is not None:
+        return WINDOW_BOUNDS
+
+    left = 0
+    top = 0
+    width = pyautogui.size().width
+    height = pyautogui.size().height
+
+    try:
+        if gw is not None:
+            win = None
+            if WINDOW_TITLE_SUBSTRING:
+                candidates = [w for w in gw.getAllWindows() if w.title and WINDOW_TITLE_SUBSTRING.lower() in w.title.lower() and w.isVisible]
+                # Prefer active window among candidates
+                active = gw.getActiveWindow()
+                if active and active in candidates:
+                    win = active
+                elif candidates:
+                    # Choose the foremost non-minimized candidate
+                    visible_candidates = [w for w in candidates if not w.isMinimized]
+                    win = visible_candidates[0] if visible_candidates else candidates[0]
+            if win is None:
+                # Fallback to active window
+                active = gw.getActiveWindow()
+                if active and active.isVisible:
+                    win = active
+            if win is not None:
+                left, top, width, height = win.left, win.top, win.width, win.height
+    except Exception:
+        # Fall back to full screen if pygetwindow not available or errors occur
+        pass
+
+    WINDOW_BOUNDS = (left, top, width, height)
+    return WINDOW_BOUNDS
+
+
+def _abs_point_from_pct(point_pct):
+    left, top, width, height = _find_game_window_bounds()
+    px, py = point_pct
+    return int(left + px * width), int(top + py * height)
+
+
+def _abs_region_from_pct(region_pct):
+    left, top, width, height = _find_game_window_bounds()
+    rx, ry, rw, rh = region_pct
+    return (
+        int(left + rx * width),
+        int(top + ry * height),
+        int(rw * width),
+        int(rh * height),
+    )
+
+
+def _to_abs_point(point_or_pct):
+    if not USE_RELATIVE_COORDS:
+        return point_or_pct
+    # Treat inputs as percentages (0..1)
+    return _abs_point_from_pct(point_or_pct)
+
+
+def _to_abs_region(region_or_pct):
+    if not USE_RELATIVE_COORDS:
+        return region_or_pct
+    # Treat inputs as percentages (0..1)
+    return _abs_region_from_pct(region_or_pct)
+
+
 def click(x, y):
     pyautogui.moveTo(x,y)
     pyautogui.mouseDown()
     time.sleep(0.03)
     pyautogui.mouseUp()
 
+
+def click_pct(point_pct):
+    x, y = _to_abs_point(point_pct)
+    click(x, y)
+
 def checker(region, comparator):
-    screenshot = pyautogui.screenshot(region=region)
+    screenshot = pyautogui.screenshot(region=_to_abs_region(region))
 
     obtained_string = pytesseract.image_to_string(screenshot, config='--psm 6').strip().lower()
 
@@ -100,7 +197,7 @@ def capture_checker():
     return False
 
 def percentage_parser():
-    screenshot = pyautogui.screenshot(region=CAPTURE_RATE)
+    screenshot = pyautogui.screenshot(region=_to_abs_region(CAPTURE_RATE))
     obtained_percentage = pytesseract.image_to_string(screenshot, config='--psm 7').strip()
 
     try:
@@ -114,7 +211,8 @@ def string_to_int(string):
     return int(remove_percentage)    
 
 def do_battle():
-    click(ABILITY_TO_USE_LOCATION[0], ABILITY_TO_USE_LOCATION[1])
+    ax, ay = _to_abs_point(ABILITY_TO_USE_LOCATION)
+    click(ax, ay)
     time.sleep(8)
     
 def check_all_level_up_ready(level_checker):
@@ -124,41 +222,52 @@ def check_all_level_up_ready(level_checker):
     return True
 
 def perform_level_up():
-    click(TRAIN_LOCATION[0], TRAIN_LOCATION[1])
+    tx, ty = _to_abs_point(TRAIN_LOCATION)
+    click(tx, ty)
     time.sleep(2)
 
     for i in MISCRITS_TO_BE_TRAINED:
-        click(i[0], i[1])
+        px, py = _to_abs_point(i)
+        click(px, py)
         time.sleep(1)
 
-        click(TRAIN_NOW_BUTTON_LOCATION[0], TRAIN_NOW_BUTTON_LOCATION[1])
+        nx, ny = _to_abs_point(TRAIN_NOW_BUTTON_LOCATION)
+        click(nx, ny)
         time.sleep(2)
 
-        click(BONUS_LOCATION[0], BONUS_LOCATION[1])
-        click(BONUS_LOCATION[0], BONUS_LOCATION[1])
+        bx, by = _to_abs_point(BONUS_LOCATION)
+        click(bx, by)
+        click(bx, by)
         time.sleep(3)
-        click(BONUS_LOCATION[0], BONUS_LOCATION[1])
+        click(bx, by)
         time.sleep(5)
 
-        click(NEW_SKILL_CONTINUE[0], NEW_SKILL_CONTINUE[1])
+        cx, cy = _to_abs_point(NEW_SKILL_CONTINUE)
+        click(cx, cy)
         time.sleep(4)
 
         try:
             evolution = pyautogui.locateOnScreen('/home/vboxuser/Desktop/MiscritsScript/evolution.png', confidence=0.7, grayscale=True)
             if(evolution):
                 print("close evolution")
-                click(EVOLUTION_CLOSE[0], EVOLUTION_CLOSE[1])
+                ex, ey = _to_abs_point(EVOLUTION_CLOSE)
+                click(ex, ey)
                 time.sleep(2)
             else:
                 print("no evolution")
         except:
             print("no evolution")
     
-    click(EXIT_TRAIN[0], EXIT_TRAIN[1])
+    ox, oy = _to_abs_point(EXIT_TRAIN)
+    click(ox, oy)
     time.sleep(3)
 
 
 def main():
+    # Prime window bounds if using relative mode
+    if USE_RELATIVE_COORDS:
+        _find_game_window_bounds()
+
     file = open("count.txt","r")
     count = int(file.readline())
     file.close()
@@ -173,7 +282,8 @@ def main():
         file.write(str(count))
         file.close()
 
-        click(LOCATION_TO_FIND[0],LOCATION_TO_FIND[1])
+        lx, ly = _to_abs_point(LOCATION_TO_FIND)
+        click(lx, ly)
         time.sleep(7)
         to_catch = False
         if checker(BATTLE_ABILITY_LOCATION, BATTLE_ABILITY_NAME):
@@ -182,11 +292,13 @@ def main():
                       to_catch = True
                       if capture_checker():
                           #capture logic
-                          click(CAPTURE_LOCATION[0], CAPTURE_LOCATION[1])
+                          cx, cy = _to_abs_point(CAPTURE_LOCATION)
+                          click(cx, cy)
                           time.sleep(10)
                           #click capture
                           #click yes
-                          click(ACCEPT_CAPTURE[0], ACCEPT_CAPTURE[1])
+                          ax, ay = _to_abs_point(ACCEPT_CAPTURE)
+                          click(ax, ay)
                 if checker(MISCRIT_NAME_LOCATION, MISCRIT):
                     print("FOUND!")
                     pygame.mixer.init()
@@ -194,14 +306,16 @@ def main():
                     pygame.mixer.music.play()
                     time.sleep(2)
                     while True:
-                        click(SAFE_ABILITY_LOCATION[0], SAFE_ABILITY_LOCATION[1])
+                        sx, sy = _to_abs_point(SAFE_ABILITY_LOCATION)
+                        click(sx, sy)
                         time.sleep(10)   
                     
                 do_battle()
             
             time.sleep(5)
             all_ready = check_all_level_up_ready(LEVEL_CHECKER)
-            click(CONTINUE_AFTER_BATTLE[0] ,CONTINUE_AFTER_BATTLE[1])
+            cx, cy = _to_abs_point(CONTINUE_AFTER_BATTLE)
+            click(cx ,cy)
             time.sleep(5)
 
             if(all_ready):
