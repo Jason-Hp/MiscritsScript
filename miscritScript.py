@@ -3,6 +3,8 @@ import time
 import pytesseract
 from rapidfuzz import fuzz
 import pygame
+from location import Location
+from coordinates import Coordinates
 try:
     import pygetwindow as gw  # For window size/position
 except ImportError:
@@ -25,50 +27,18 @@ WINDOW_BOUNDS = None
 
 # Bonus
 BONUS = False
-BONUS_LOCATION = (705,750)
 
 #Miscrit name you are looking for in lower case
 MISCRIT = "papa"
 
-# Which location to click to search for miscrit
-LOCATION_TO_FIND = (653, 239)
-
-CAPTURE_RATE = (644,206,55,22)
-
-CAPTURE_LOCATION = (673, 192)
-
-ACCEPT_CAPTURE = (608,576)
-
-MISCRIT_NAME_LOCATION = (935, 97, 105, 13)
-
-CONTINUE_AFTER_BATTLE = (675, 685)
-
 BATTLE_ABILITY_NAME = "bastion"
-BATTLE_ABILITY_LOCATION = (540, 730, 100, 25)
-SAFE_ABILITY_LOCATION = (550, 735)
-
-ABILITY_TO_USE_LOCATION = (345,735)
-
-LEVEL_UP_BOTTOM_LEFT = (370, 460, 100, 14)
-LEVEL_UP_TOP_RIGHT = (540, 350, 100, 14)
-LEVEL_UP_BOTTOM_RIGHT = (540, 460, 100, 14)
-LEVEL_CHECKER = [LEVEL_UP_BOTTOM_RIGHT,LEVEL_UP_BOTTOM_LEFT, LEVEL_UP_TOP_RIGHT]
 READY_TO_TRAIN = "ready to train"
 
+# Level checker coordinates
+LEVEL_CHECKER = [Coordinates.LEVEL_UP_BOTTOM_RIGHT.value, Coordinates.LEVEL_UP_BOTTOM_LEFT.value, Coordinates.LEVEL_UP_TOP_RIGHT.value]
 
-TRAIN_LOCATION = (593, 109)
-FIRST_MISCRIT_TO_TRAIN = (405, 250)
-SECOND_MISCRIT_TO_TRAIN = (405, 300)
-THIRD_MISCRIT_TO_TRAIN = (405, 350)
-
-MISCRITS_TO_BE_TRAINED = [FIRST_MISCRIT_TO_TRAIN, SECOND_MISCRIT_TO_TRAIN, THIRD_MISCRIT_TO_TRAIN]
-
-EVOLUTION_CLOSE = (668,693)
-
-TRAIN_NOW_BUTTON_LOCATION = (710, 160)
-TRAIN_CONTINUE = (809, 734)
-NEW_SKILL_CONTINUE = (803, 569)
-EXIT_TRAIN = (1030, 130)
+# Miscrits to be trained
+MISCRITS_TO_BE_TRAINED = [Location.FIRST_MISCRIT_TO_TRAIN.value, Location.SECOND_MISCRIT_TO_TRAIN.value, Location.THIRD_MISCRIT_TO_TRAIN.value]
 
 
 # =============================
@@ -197,7 +167,7 @@ def capture_checker():
     return False
 
 def percentage_parser():
-    screenshot = pyautogui.screenshot(region=_to_abs_region(CAPTURE_RATE))
+    screenshot = pyautogui.screenshot(region=_to_abs_region(Coordinates.CAPTURE_RATE.value))
     obtained_percentage = pytesseract.image_to_string(screenshot, config='--psm 7').strip()
 
     try:
@@ -211,7 +181,7 @@ def string_to_int(string):
     return int(remove_percentage)    
 
 def do_battle():
-    ax, ay = _to_abs_point(ABILITY_TO_USE_LOCATION)
+    ax, ay = _to_abs_point(Location.ABILITY_TO_USE_LOCATION.value)
     click(ax, ay)
     time.sleep(8)
     
@@ -222,7 +192,7 @@ def check_all_level_up_ready(level_checker):
     return True
 
 def perform_level_up():
-    tx, ty = _to_abs_point(TRAIN_LOCATION)
+    tx, ty = _to_abs_point(Location.TRAIN_LOCATION.value)
     click(tx, ty)
     time.sleep(2)
 
@@ -231,18 +201,18 @@ def perform_level_up():
         click(px, py)
         time.sleep(1)
 
-        nx, ny = _to_abs_point(TRAIN_NOW_BUTTON_LOCATION)
+        nx, ny = _to_abs_point(Location.TRAIN_NOW_BUTTON_LOCATION.value)
         click(nx, ny)
         time.sleep(2)
 
-        bx, by = _to_abs_point(BONUS_LOCATION)
+        bx, by = _to_abs_point(Location.BONUS_LOCATION.value)
         click(bx, by)
         click(bx, by)
         time.sleep(3)
         click(bx, by)
         time.sleep(5)
 
-        cx, cy = _to_abs_point(NEW_SKILL_CONTINUE)
+        cx, cy = _to_abs_point(Location.NEW_SKILL_CONTINUE.value)
         click(cx, cy)
         time.sleep(4)
 
@@ -250,7 +220,7 @@ def perform_level_up():
             evolution = pyautogui.locateOnScreen('/home/vboxuser/Desktop/MiscritsScript/evolution.png', confidence=0.7, grayscale=True)
             if(evolution):
                 print("close evolution")
-                ex, ey = _to_abs_point(EVOLUTION_CLOSE)
+                ex, ey = _to_abs_point(Location.EVOLUTION_CLOSE.value)
                 click(ex, ey)
                 time.sleep(2)
             else:
@@ -258,7 +228,7 @@ def perform_level_up():
         except:
             print("no evolution")
     
-    ox, oy = _to_abs_point(EXIT_TRAIN)
+    ox, oy = _to_abs_point(Location.EXIT_TRAIN.value)
     click(ox, oy)
     time.sleep(3)
 
@@ -282,31 +252,31 @@ def main():
         file.write(str(count))
         file.close()
 
-        lx, ly = _to_abs_point(LOCATION_TO_FIND)
+        lx, ly = _to_abs_point(Location.LOCATION_TO_FIND.value)
         click(lx, ly)
         time.sleep(7)
         to_catch = False
-        if checker(BATTLE_ABILITY_LOCATION, BATTLE_ABILITY_NAME):
-            while(checker(BATTLE_ABILITY_LOCATION, BATTLE_ABILITY_NAME)):
+        if checker(Coordinates.BATTLE_ABILITY_LOCATION.value, BATTLE_ABILITY_NAME):
+            while(checker(Coordinates.BATTLE_ABILITY_LOCATION.value, BATTLE_ABILITY_NAME)):
                 if to_catch or grade_checker():
                       to_catch = True
                       if capture_checker():
                           #capture logic
-                          cx, cy = _to_abs_point(CAPTURE_LOCATION)
+                          cx, cy = _to_abs_point(Location.CAPTURE_LOCATION.value)
                           click(cx, cy)
                           time.sleep(10)
                           #click capture
                           #click yes
-                          ax, ay = _to_abs_point(ACCEPT_CAPTURE)
+                          ax, ay = _to_abs_point(Location.ACCEPT_CAPTURE.value)
                           click(ax, ay)
-                if checker(MISCRIT_NAME_LOCATION, MISCRIT):
+                if checker(Coordinates.MISCRIT_NAME_LOCATION.value, MISCRIT):
                     print("FOUND!")
                     pygame.mixer.init()
                     pygame.mixer.music.load("/home/vboxuser/Desktop/MiscritsScript/sound.mp3")
                     pygame.mixer.music.play()
                     time.sleep(2)
                     while True:
-                        sx, sy = _to_abs_point(SAFE_ABILITY_LOCATION)
+                        sx, sy = _to_abs_point(Location.SAFE_ABILITY_LOCATION.value)
                         click(sx, sy)
                         time.sleep(10)   
                     
@@ -314,7 +284,7 @@ def main():
             
             time.sleep(5)
             all_ready = check_all_level_up_ready(LEVEL_CHECKER)
-            cx, cy = _to_abs_point(CONTINUE_AFTER_BATTLE)
+            cx, cy = _to_abs_point(Location.CONTINUE_AFTER_BATTLE.value)
             click(cx ,cy)
             time.sleep(5)
 
