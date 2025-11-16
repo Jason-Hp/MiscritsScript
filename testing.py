@@ -2,11 +2,6 @@ import pyautogui
 import sys
 import time
 try:
-    import msvcrt  # Windows-specific keyboard input
-except ImportError:
-    msvcrt = None
-
-try:
     import keyboard  # Global hotkey listener
 except ImportError:
     keyboard = None
@@ -37,13 +32,8 @@ def main():
     print("Press 'h' to start the screenshot...")
     if keyboard is not None:
         keyboard.wait('h')
-    elif msvcrt is not None:
-        while True:
-            ch = msvcrt.getwch()
-            if ch.lower() == 'h':
-                break
     else:
-        print("keyboard/msvcrt not available; press Enter after typing 'h'.")
+        print("keyboard not available; press Enter after typing 'h'.")
         while True:
             inp = input("")
             if inp.strip().lower() == 'h':
@@ -63,10 +53,10 @@ def main():
         left, top, width, height = window.left, window.top, window.width, window.height
 
     # Percentages
-    px = 0.695   # 69.5%
-    py = 0.108   # 10.8%
-    pw = 0.105   # 10.5%
-    ph = 0.04    # 4%
+    px = 0.478   # 69.5%
+    py = 0.215   # 10.8%
+    pw = 0.043   # 10.5%
+    ph = 0.026   # 4%
 
     region = (
         int(left + px * width),

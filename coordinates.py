@@ -2,7 +2,12 @@ from enum import Enum
 
 class Coordinates(Enum):
     """Enum for (x, y, width, height) coordinate regions"""
+    """(percentage x, percentage y, percentage width, percentage height)"""
     CAPTURE_RATE = (644, 206, 55, 22)
+    CAPTURE_RATE_PERCENTAGE = (0.478, 0.215, 0.043, 0.026)
+
+
+
     MISCRIT_NAME_LOCATION = (935, 97, 105, 13)
     BATTLE_ABILITY_LOCATION = (540, 730, 100, 25)
     LEVEL_UP_BOTTOM_LEFT = (370, 460, 100, 14)
