@@ -1,63 +1,39 @@
+import subprocess
 import pyautogui
-import sys
-import time
-try:
-    import keyboard  # Global hotkey listener
-except ImportError:
-    keyboard = None
 
-try:
-    import pygetwindow as gw
-except ImportError:
-    gw = None
+def get_window_geometry(window_title):
+    # Run wmctrl to get the list of windows with their geometry
+    result = subprocess.run(['wmctrl', '-lG'], capture_output=True, text=True)
+    windows = result.stdout.splitlines()
 
-
-def find_window_by_title_substring(title_substring: str):
-    if gw is None:
-        return None
-    candidates = [
-        w for w in gw.getAllWindows()
-        if w.title and title_substring.lower() in w.title.lower()
-    ]
-    if not candidates:
-        return None
-    active = gw.getActiveWindow()
-    if active and active in candidates:
-        return active
-    return candidates[0]
-
+    # Search through each window to find the one with the title
+    for window in windows:
+        parts = window.split()
+        window_id, x, y, width, height, title = parts[0], parts[1], parts[2], parts[3], parts[4], ' '.join(parts[5:])
+        
+        # Check if the window title contains the substring we're looking for
+        if window_title.lower() in title.lower():
+            return int(x), int(y), int(width), int(height)
+    
+    return None
 
 def main():
-    # Wait for user to press 'h' to start (global listener if available)
-    print("Press 'h' to start the screenshot...")
-    if keyboard is not None:
-        keyboard.wait('h')
-    else:
-        print("keyboard not available; press Enter after typing 'h'.")
-        while True:
-            inp = input("")
-            if inp.strip().lower() == 'h':
-                break
+    window_title = "Miscrits"  # Adjust this title to match the window you're targeting
 
-    title_substring = "Miscrit"
-    window = find_window_by_title_substring(title_substring)
-    if window is None:
-        print("Could not find a visible window with title containing 'Miscrit'.")
-        if gw is None:
-            print("pygetwindow is not installed; falling back to full-screen coordinates.")
-        # Fallback to full screen bounds
-        left, top = 0, 0
-        screen_width, screen_height = pyautogui.size()
-        width, height = screen_width, screen_height
-    else:
-        left, top, width, height = window.left, window.top, window.width, window.height
+    # Get the window geometry using wmctrl
+    geometry = get_window_geometry(window_title)
+    
+    if geometry is None:
+        print(f"Could not find a window with title containing '{window_title}'.")
+        return
 
-    # Percentages
-    px = 0.478   # 69.5%
-    py = 0.215   # 10.8%
-    pw = 0.043   # 10.5%
-    ph = 0.026   # 4%
+    left, top, width, height = geometry
+    print(f"Window geometry: left={left}, top={top}, width={width}, height={height}")
 
+    # Define region capture percentages (adjust these to your needs)
+    px, py, pw, ph = 0.478, 0.215, 0.043, 0.026
+
+    # Calculate the capture region based on percentages
     region = (
         int(left + px * width),
         int(top + py * height),
@@ -65,18 +41,13 @@ def main():
         int(ph * height),
     )
 
-    print(f"Window bounds: left={left}, top={top}, width={width}, height={height}")
+    # Debug: Print the calculated region for capture
     print(f"Capture region (x, y, w, h): {region}")
 
+    # Capture the screenshot of the region
     screenshot = pyautogui.screenshot(region=region)
-    output_path = "testing_capture.png"
-    screenshot.save(output_path)
-    print(f"Saved screenshot to {output_path}")
-
+    screenshot.save("testing_capture.png")
+    print("Screenshot saved to testing_capture.png")
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as exc:
-        print(f"Error: {exc}")
-        sys.exit(1)
+    main()
