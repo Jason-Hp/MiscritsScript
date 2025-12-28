@@ -4,7 +4,7 @@ public interface Alert {
 
     String type();
 
-    void alert(String message, String title);
+    void alert(AlertInformation alertInformation);
 
     String formatSubject(String title);
 

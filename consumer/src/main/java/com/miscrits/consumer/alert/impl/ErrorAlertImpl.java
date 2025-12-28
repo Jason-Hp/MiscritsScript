@@ -1,15 +1,24 @@
 package com.miscrits.consumer.alert.impl;
 
 import com.miscrits.consumer.alert.Alert;
+import com.miscrits.consumer.alert.AlertInformation;
+import com.miscrits.consumer.mail.MailService;
 import com.miscrits.consumer.pojo.AlertEmail;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class ErrorAlertImpl implements Alert {
 
-    //TODO try to make red?
     private final String ERROR_SUBJECT = "ERROR - ";
-    //todo put email receipiant in properties
+
+    // Mail to self
+    @Value("${spring.mail.username}")
+    private final String RECIPIENT;
+
+    private final MailService mailService;
 
     @Override
     public String type() {
@@ -17,11 +26,15 @@ public class ErrorAlertImpl implements Alert {
     }
 
     @Override
-    public void alert(String message, String title) {
+    public void alert(AlertInformation alertInformation) {
+        String title = alertInformation.title;
+        String message = alertInformation.body;
+
         String subject = formatSubject(title);
         String messageBody = formatMessage(message);
-        AlertEmail alertEmail = new AlertEmail(subject, messageBody);
-        // mail this
+        AlertEmail alertEmail = new AlertEmail(subject, messageBody, RECIPIENT);
+
+        mailService.mail(alertEmail);
     }
 
     @Override
