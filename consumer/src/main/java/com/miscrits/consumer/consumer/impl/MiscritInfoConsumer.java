@@ -1,19 +1,18 @@
 package com.miscrits.consumer.consumer.impl;
 
 import com.miscrits.consumer.consumer.Consumer;
-import com.miscrits.consumer.service.FacadeService;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @AllArgsConstructor
-public class ActionConsumerImpl implements Consumer {
+public class MiscritInfoConsumer implements Consumer {
 
     private final FacadeService facadeService;
 
-    @KafkaListener(topics = "action", groupId = "action-consumer")
+    @KafkaListener(topics = "miscrit-info", groupId = "miscrit-consumer")
     public void consume(ConsumerRecord<String, String> record) {
         String key = record.key();
         String value = record.value();

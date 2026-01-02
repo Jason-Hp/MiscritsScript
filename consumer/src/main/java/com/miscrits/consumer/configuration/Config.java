@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 public class Config {
 
     @Bean
+    @Deprecated
     public Map<String, Service> serviceMap(List<Service> services) {
         return services.stream().collect(Collectors.toMap(Service::key, service -> service));
     }

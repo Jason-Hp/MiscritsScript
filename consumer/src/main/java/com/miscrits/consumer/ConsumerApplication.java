@@ -6,7 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ConsumerApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(ConsumerApplication.class, args);
+
+        // TODO args here to set up MISCRIT NAME
+
+        SpringApplication.run(ConsumerApplication.class, args);
 	}
 
 }

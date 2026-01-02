@@ -7,9 +7,6 @@ public enum AlertInformation {
             "please take a look at the script and the game! " +
             "Character is most likely out of place, manually put character back into position."),
 
-    NO_SERVICE_FOUND("No Service found!", "No Service found! See exception message for more information, the consumer service will terminate but the script" +
-                             "will keep running."),
-
     GENERAL_MESSAGE("", "");
 
     public String body;
