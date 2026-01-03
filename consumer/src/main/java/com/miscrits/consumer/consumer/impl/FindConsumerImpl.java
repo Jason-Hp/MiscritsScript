@@ -6,17 +6,21 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 @AllArgsConstructor
 public class FindConsumerImpl implements Consumer {
 
-    private final com.miscrits.consumer.service.Service findServiceImpl;
+    private final Map<String, com.miscrits.consumer.service.Service> serviceMap;
 
     @KafkaListener(topics = "find-action", groupId = "miscrit-consumer")
     public void consume(ConsumerRecord<String, String> record) {
         String key = record.key();
         String value = record.value();
-        findServiceImpl.operate(value);
+
+        com.miscrits.consumer.service.Service service = serviceMap.get(key);
+        service.operate(value);
     }
 
 }

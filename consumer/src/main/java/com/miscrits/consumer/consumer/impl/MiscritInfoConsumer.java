@@ -10,13 +10,13 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class MiscritInfoConsumer implements Consumer {
 
-    private final FacadeService facadeService;
+    private final com.miscrits.consumer.service.Service miscritNameServiceImpl;
 
     @KafkaListener(topics = "miscrit-info", groupId = "miscrit-consumer")
     public void consume(ConsumerRecord<String, String> record) {
-        String key = record.key();
         String value = record.value();
-        facadeService.call(key, value);
+
+        miscritNameServiceImpl.operate(value);
     }
 
 }

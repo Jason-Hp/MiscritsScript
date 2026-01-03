@@ -1,5 +1,6 @@
 package com.miscrits.consumer;
 
+import com.miscrits.consumer.alert.Alert;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,8 +9,13 @@ public class ConsumerApplication {
 	public static void main(String[] args) {
 
         // TODO args here to set up MISCRIT NAME
+        Alert errorAlertImpl;
 
-        SpringApplication.run(ConsumerApplication.class, args);
+        try {
+            SpringApplication.run(ConsumerApplication.class, args);
+        } catch (Exception e) {
+
+        }
 	}
 
 }
