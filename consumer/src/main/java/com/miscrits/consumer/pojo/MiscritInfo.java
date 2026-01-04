@@ -9,6 +9,8 @@ public class MiscritInfo {
 
     private String miscritName;
     private boolean isHighGradeOrRare;
+
+    // This is the percentage of initial capture rate represented by an integer
     private Integer initialCaptureRate;
 
 }

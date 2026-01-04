@@ -2,7 +2,9 @@ package com.miscrits.consumer.service.impl;
 
 import com.google.gson.Gson;
 import com.miscrits.consumer.alert.Alert;
+import com.miscrits.consumer.entity.FindEntity;
 import com.miscrits.consumer.pojo.Action;
+import com.miscrits.consumer.repository.FindRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,8 @@ public class FindServiceImpl implements com.miscrits.consumer.service.Service {
     private final Map<String, Alert> alertMap;
 
     private final Gson gson = new Gson();
+
+    private final FindRepository findRepository;
 
     static {
         Action stubSuccesfulAction = new Action(0L, true, null, null);
@@ -64,23 +68,38 @@ public class FindServiceImpl implements com.miscrits.consumer.service.Service {
 
             if(!inFailure) {
                 inFailure = true;
-                updateFailure(findAction);
+                upsertFailure(findAction);
             }
 
             return;
         }
         previousFinds.offer(findAction);
-        updateNonFailure(findAction);
+        upsertNonFailure(findAction);
 
     }
 
-    private void updateFailure(Action findAction) {
-        // delete prev 5
-        // set failed
-        //TODO
+    private void upsertFailure(Action findAction) {
+
+        for (int i = 0; i < 5; i++) {
+            Long idToRemove = findAction.getId() - (i + 1);
+            findRepository.deleteByActionId(idToRemove);
+        }
+
+        FindEntity findEntity = new FindEntity();
+        findEntity.setActionId(findAction.getId());
+        findEntity.setSuccessful(false);
+
+        findRepository.save(findEntity);
+
     }
 
-    private void updateNonFailure(Action findAction) {
+    private void upsertNonFailure(Action findAction) {
+
+        FindEntity findEntity = new FindEntity();
+        findEntity.setActionId(findAction.getId());
+        findEntity.setSuccessful(true);
+
+        findRepository.save(findEntity);
 
     }
 

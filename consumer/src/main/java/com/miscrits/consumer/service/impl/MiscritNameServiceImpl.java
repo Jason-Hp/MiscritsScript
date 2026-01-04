@@ -3,7 +3,9 @@ package com.miscrits.consumer.service.impl;
 import com.google.gson.Gson;
 import com.miscrits.consumer.alert.Alert;
 import com.miscrits.consumer.alert.AlertInformation;
+import com.miscrits.consumer.entity.MiscritEntity;
 import com.miscrits.consumer.pojo.MiscritInfo;
+import com.miscrits.consumer.repository.MiscritRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ public class MiscritNameServiceImpl implements com.miscrits.consumer.service.Ser
 
     private final Gson gson;
 
+    private final MiscritRepository miscritRepository;
+
     @Override
     public String key() {
         return "name";
@@ -38,15 +42,17 @@ public class MiscritNameServiceImpl implements com.miscrits.consumer.service.Ser
             generalMessage.setTitle("FOUND " + miscritInfo.getMiscritName());
             generalMessage.setBody("FOUND " + miscritInfo.getMiscritName());
 
-            updateMiscritMetrics(true, miscritInfo.getMiscritName());
+            alertMap.get("general").alert(generalMessage);
 
-        } else {
-            updateMiscritMetrics(false, miscritInfo.getMiscritName());
         }
 
+        MiscritEntity miscritEntity = new MiscritEntity();
+        miscritEntity.setName(miscritInfo.getMiscritName());
+        miscritEntity.setTargetMiscrit(targetMiscrit);
+        miscritEntity.setHighGradeOrRare(miscritInfo.isHighGradeOrRare());
+        miscritEntity.setInitialCaptureRate(miscritInfo.getInitialCaptureRate());
+
+        miscritRepository.save(miscritEntity);
     }
 
-    private void updateMiscritMetrics(boolean isTargetFound, String miscritFound) {
-        //TODO IMPLEMENT
-    }
 }

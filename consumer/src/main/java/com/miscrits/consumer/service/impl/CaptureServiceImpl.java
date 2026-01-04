@@ -3,9 +3,13 @@ package com.miscrits.consumer.service.impl;
 import com.google.gson.Gson;
 import com.miscrits.consumer.alert.Alert;
 import com.miscrits.consumer.alert.AlertInformation;
+import com.miscrits.consumer.entity.CaptureEntity;
 import com.miscrits.consumer.pojo.Action;
+import com.miscrits.consumer.repository.CaptureRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +28,8 @@ public class CaptureServiceImpl implements com.miscrits.consumer.service.Service
     private final Gson gson;
 
     private final Alert errorAlertImpl;
+
+    private final CaptureRepository captureRepository;
 
     private Action prevCaptureAction = null;
 
@@ -54,6 +60,18 @@ public class CaptureServiceImpl implements com.miscrits.consumer.service.Service
     }
 
     private void upsertCaptureInfo(boolean isCaptured, Action captureAction) {
-        // TODO
+
+        CaptureEntity captureEntity = Optional.ofNullable(captureRepository.getByActionId(captureAction.getId())).orElse(
+                CaptureEntity.builder()
+                        .isCaptured(isCaptured)
+                        .miscritName(captureAction.getDescription())
+                        .actionId(captureAction.getId())
+                        .build()
+        );
+
+        // Set again if managed to retrieve from DB
+        captureEntity.setCaptured((isCaptured));
+
+        captureRepository.save(captureEntity);
     }
 }
