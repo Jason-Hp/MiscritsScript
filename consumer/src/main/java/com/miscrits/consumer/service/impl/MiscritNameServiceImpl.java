@@ -20,7 +20,7 @@ public class MiscritNameServiceImpl implements com.miscrits.consumer.service.Ser
     private final Map<String, Alert> alertMap;
 
     //TODO wire in from args
-    private final String targetMiscrit;
+    private final String targetMiscrit = "papa";
 
     private final Gson gson;
 
