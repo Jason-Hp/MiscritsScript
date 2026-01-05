@@ -6,10 +6,15 @@ import pygame
 from location import Location
 from coordinates import Coordinates
 
-#Miscrit name you are looking for in lower case
+#*UPDATE* Miscrit name you are looking for in lower case
 MISCRIT = "papa"
 
+#*UPDATE* Miscrit (x, y) location
+LOCATION_TO_FIND = (653, 239)
+
+#*UPDATE* Ability name
 BATTLE_ABILITY_NAME = "bastion"
+
 READY_TO_TRAIN = "ready to train"
 
 # Level checker coordinates
@@ -38,9 +43,6 @@ def checker(region, comparator):
     if (comparator == MISCRIT):
         print("miscrit: "+obtained_string)
         print("fuzz: "+str(fuzz.ratio(obtained_string, comparator)))
-        file = open("log.txt","a")
-        file.write("\n"+obtained_string)
-        file.close()
         if (obtained_string==""):
             result = percentage_parser()
             if (result < 5 and result > 0):
@@ -144,7 +146,7 @@ def main():
         file.write(str(count))
         file.close()
 
-        click_point(Location.LOCATION_TO_FIND.value)
+        click_point(LOCATION_TO_FIND)
         time.sleep(7)
         to_catch = False
         if checker(Coordinates.BATTLE_ABILITY_LOCATION.value, BATTLE_ABILITY_NAME):
