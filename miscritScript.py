@@ -1,3 +1,4 @@
+import subprocess
 import pyautogui
 import time
 import pytesseract
@@ -5,10 +6,6 @@ from rapidfuzz import fuzz
 import pygame
 from location import Location
 from coordinates import Coordinates
-try:
-    import pygetwindow as gw  # For window size/position
-except ImportError:
-    gw = None
 
 
 # Config: coordinate mode
@@ -45,6 +42,29 @@ MISCRITS_TO_BE_TRAINED = [Location.FIRST_MISCRIT_TO_TRAIN.value, Location.SECOND
 # Relative coordinate utilities
 # =============================
 
+def _get_window_geometry(window_title_substring):
+    """Find window geometry using wmctrl on Linux.
+
+    Returns a tuple of (left, top, width, height) if a matching window is found,
+    otherwise None.
+    """
+    try:
+        result = subprocess.run(["wmctrl", "-lG"], capture_output=True, text=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+    for window in result.stdout.splitlines():
+        parts = window.split()
+        if len(parts) < 6:
+            continue
+
+        window_id, x, y, width, height, title = parts[0], parts[1], parts[2], parts[3], parts[4], " ".join(parts[5:])
+        if window_title_substring.lower() in title.lower():
+            return int(x), int(y), int(width), int(height)
+
+    return None
+
+
 def _find_game_window_bounds():
     global WINDOW_BOUNDS
     # If already computed, return cached
@@ -56,29 +76,10 @@ def _find_game_window_bounds():
     width = pyautogui.size().width
     height = pyautogui.size().height
 
-    try:
-        if gw is not None:
-            win = None
-            if WINDOW_TITLE_SUBSTRING:
-                candidates = [w for w in gw.getAllWindows() if w.title and WINDOW_TITLE_SUBSTRING.lower() in w.title.lower() and w.isVisible]
-                # Prefer active window among candidates
-                active = gw.getActiveWindow()
-                if active and active in candidates:
-                    win = active
-                elif candidates:
-                    # Choose the foremost non-minimized candidate
-                    visible_candidates = [w for w in candidates if not w.isMinimized]
-                    win = visible_candidates[0] if visible_candidates else candidates[0]
-            if win is None:
-                # Fallback to active window
-                active = gw.getActiveWindow()
-                if active and active.isVisible:
-                    win = active
-            if win is not None:
-                left, top, width, height = win.left, win.top, win.width, win.height
-    except Exception:
-        # Fall back to full screen if pygetwindow not available or errors occur
-        pass
+    if WINDOW_TITLE_SUBSTRING:
+        geometry = _get_window_geometry(WINDOW_TITLE_SUBSTRING)
+        if geometry is not None:
+            left, top, width, height = geometry
 
     WINDOW_BOUNDS = (left, top, width, height)
     return WINDOW_BOUNDS
@@ -308,4 +309,5 @@ def main():
         else:
             time.sleep(20)
 
-main()
+if __name__ == "__main__":
+    main()
