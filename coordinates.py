@@ -1,10 +1,8 @@
 from enum import Enum
 
 class Coordinates(Enum):
-    """Enum for (x, y, width, height) coordinate regions"""
-    """(percentage x, percentage y, percentage width, percentage height)"""
+    """Enum for (x, y, width, height) coordinate regions."""
     CAPTURE_RATE = (644, 206, 55, 22)
-    CAPTURE_RATE_PERCENTAGE = (0.478, 0.215, 0.043, 0.026)
 
 
 
