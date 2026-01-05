@@ -24,6 +24,29 @@ LEVEL_CHECKER = [Coordinates.LEVEL_UP_BOTTOM_RIGHT.value, Coordinates.LEVEL_UP_B
 MISCRITS_TO_BE_TRAINED = [Location.FIRST_MISCRIT_TO_TRAIN.value, Location.SECOND_MISCRIT_TO_TRAIN.value, Location.THIRD_MISCRIT_TO_TRAIN.value]
 
 
+def publish_kafka_examples():
+    """Demonstrate how to produce events to the Kafka topics consumed by the Spring Boot app.
+
+    The example uses the helper classes in ``kafka_producer.py`` to mirror the Java ``Action``
+    and ``MiscritInfo`` payloads. Update the values below or call these helpers from the
+    automation flow when you want to emit real events.
+    """
+
+    from kafka_producer import Action, MiscritInfo, MiscritsKafkaProducer
+
+    producer = MiscritsKafkaProducer()
+
+    # Example: emit a successful find action with the key "find" to reach FindServiceImpl
+    action = Action(id=1, is_successful=True, description="locust map exploration", name="find")
+    producer.send_action(action, key="find")
+
+    # Example: emit capture information for the miscrit the automation just encountered
+    miscrit_info = MiscritInfo(miscrit_name="Papa", is_high_grade_or_rare=True, initial_capture_rate=72)
+    producer.send_miscrit_info(miscrit_info)
+
+    producer.flush()
+
+
 def click(x, y):
     pyautogui.moveTo(x,y)
     pyautogui.mouseDown()
