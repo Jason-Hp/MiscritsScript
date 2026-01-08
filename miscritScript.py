@@ -5,6 +5,7 @@ from rapidfuzz import fuzz
 import pygame
 from location import Location
 from coordinates import Coordinates
+from kafka_producer import Action, MiscritInfo, MiscritsKafkaProducer
 
 #*UPDATE* Miscrit name you are looking for in lower case
 MISCRIT = "papa"
@@ -23,29 +24,7 @@ LEVEL_CHECKER = [Coordinates.LEVEL_UP_BOTTOM_RIGHT.value, Coordinates.LEVEL_UP_B
 # Miscrits to be trained
 MISCRITS_TO_BE_TRAINED = [Location.FIRST_MISCRIT_TO_TRAIN.value, Location.SECOND_MISCRIT_TO_TRAIN.value, Location.THIRD_MISCRIT_TO_TRAIN.value]
 
-
-def publish_kafka_examples():
-    """Demonstrate how to produce events to the Kafka topics consumed by the Spring Boot app.
-
-    The example uses the helper classes in ``kafka_producer.py`` to mirror the Java ``Action``
-    and ``MiscritInfo`` payloads. Update the values below or call these helpers from the
-    automation flow when you want to emit real events.
-    """
-
-    from kafka_producer import Action, MiscritInfo, MiscritsKafkaProducer
-
-    producer = MiscritsKafkaProducer()
-
-    # Example: emit a successful find action with the key "find" to reach FindServiceImpl
-    action = Action(id=1, is_successful=True, description="locust map exploration", name="find")
-    producer.send_action(action, key="find")
-
-    # Example: emit capture information for the miscrit the automation just encountered
-    miscrit_info = MiscritInfo(miscrit_name="Papa", is_high_grade_or_rare=True, initial_capture_rate=72)
-    producer.send_miscrit_info(miscrit_info)
-
-    producer.flush()
-
+kafka_producer = MiscritsKafkaProducer()
 
 def click(x, y):
     pyautogui.moveTo(x,y)
@@ -58,10 +37,16 @@ def click_point(point):
     x, y = point
     click(x, y)
 
-def checker(region, comparator):
+def get_miscrit_name(region):
     screenshot = pyautogui.screenshot(region=region)
 
     obtained_string = pytesseract.image_to_string(screenshot, config='--psm 6').strip().lower()
+
+    return obtained_string
+
+def checker(region, comparator):
+
+    obtained_string = get_miscrit_name(region)
 
     if (comparator == MISCRIT):
         print("miscrit: "+obtained_string)
@@ -173,25 +158,34 @@ def main():
         time.sleep(7)
         to_catch = False
         if checker(Coordinates.BATTLE_ABILITY_LOCATION.value, BATTLE_ABILITY_NAME):
+            find_action = Action(id=count, is_successful=True, description="Successfully found and is battling a miscrit", name="find")
+            kafka_producer.send_action(find_action, key="find")
+            produced_miscrit_info_message = False
             while(checker(Coordinates.BATTLE_ABILITY_LOCATION.value, BATTLE_ABILITY_NAME)):
+
+                if not produced_miscrit_info_message:
+                    miscrit_info = MiscritInfo(miscrit_name=get_miscrit_name(Coordinates.MISCRIT_NAME_LOCATION.value), is_high_grade_or_rare=grade_checker(), initial_capture_rate=percentage_parser())
+                    kafka_producer.send_miscrit_info(miscrit_info)
+                    produced_miscrit_info_message = True
+
+                if checker(Coordinates.MISCRIT_NAME_LOCATION.value, MISCRIT):
+                    print("FOUND!")
+                    time.sleep(2)
+                    while True:
+                        click_point(Location.SAFE_ABILITY_LOCATION.value)
+                        time.sleep(10)
+
                 if to_catch or grade_checker():
                       to_catch = True
                       if capture_checker():
+                          capture_action = Action(id=count, is_successful=True, description=get_miscrit_name(Coordinates.MISCRIT_NAME_LOCATION.value), name="capture")
+                          kafka_producer.send_action(capture_action, key="capture")
                           #capture logic
                           click_point(Location.CAPTURE_LOCATION.value)
                           time.sleep(10)
                           #click capture
                           #click yes
                           click_point(Location.ACCEPT_CAPTURE.value)
-                if checker(Coordinates.MISCRIT_NAME_LOCATION.value, MISCRIT):
-                    print("FOUND!")
-                    pygame.mixer.init()
-                    pygame.mixer.music.load("/home/vboxuser/Desktop/MiscritsScript/sound.mp3")
-                    pygame.mixer.music.play()
-                    time.sleep(2)
-                    while True:
-                        click_point(Location.SAFE_ABILITY_LOCATION.value)
-                        time.sleep(10)
 
                 do_battle()
 
