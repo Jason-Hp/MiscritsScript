@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass
+from importlib import util as importlib_util
 from pathlib import Path
 from typing import Iterable
 
@@ -11,23 +12,9 @@ import pytesseract
 from rapidfuzz import fuzz
 
 from coordinates import Coordinates
+from config import ScriptConfig
 from kafka_producer import Action, MiscritInfo, MiscritsKafkaProducer
 from location import Location
-
-
-@dataclass(frozen=True)
-class ScriptConfig:
-    """Configuration values for the Miscrits automation script."""
-
-    target_miscrit: str = "papa"
-    location_to_find: tuple[int, int] = (653, 239)
-    battle_ability_name: str = "bastion"
-    ready_to_train_text: str = "ready to train"
-    evolution_image_name: str = "evolution.png"
-    close_image_name: str = "close.png"
-    safe_ability_location: tuple[int, int] = (550, 735)
-    enable_bonus: bool = False
-    level_up_count: int = 3
 
 
 @dataclass(frozen=True)
@@ -295,7 +282,13 @@ class MiscritsAutomation:
             self.close_overlays()
 
 def main() -> None:
-    config = ScriptConfig()
+    if importlib_util.find_spec("tkinter") is None:
+        raise SystemExit(
+            "Tkinter is not installed. On Ubuntu, run: sudo apt-get install python3-tk"
+        )
+    from gui import prompt_for_config
+
+    config = prompt_for_config(ScriptConfig())
     producer = MiscritsKafkaProducer()
     count_store = CountStore(Path(__file__).with_name("count.txt"))
     automation = MiscritsAutomation(
