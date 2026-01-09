@@ -26,4 +26,4 @@ producer.send_miscrit_info(MiscritInfo(miscrit_name="Papa", is_high_grade_or_rar
 producer.flush()
 ```
 
-You can also call `publish_kafka_examples()` inside `miscritScript.py` for a runnable example.
+You can also call `publish_kafka_examples()` inside `miscrit_script.py` for a runnable example.
