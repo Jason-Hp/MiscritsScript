@@ -26,6 +26,7 @@ class ScriptConfig:
     evolution_image_name: str = "evolution.png"
     close_image_name: str = "close.png"
     safe_ability_location: tuple[int, int] = (550, 735)
+    enable_bonus: bool = False
 
 
 @dataclass(frozen=True)
@@ -139,15 +140,16 @@ class MiscritsAutomation:
             self.click_point(Location.TRAIN_NOW_BUTTON_LOCATION.value)
             time.sleep(2)
 
-            self.click_point(Location.BONUS_LOCATION.value)
-            self.click_point(Location.BONUS_LOCATION.value)
-            time.sleep(3)
-            self.click_point(Location.BONUS_LOCATION.value)
-            time.sleep(5)
+            if (self.config.enable_bonus):
+                self.click_point(Location.BONUS_LOCATION.value)
+                self.click_point(Location.BONUS_LOCATION.value)
+                time.sleep(3)
+                self.click_point(Location.BONUS_LOCATION.value)
+                time.sleep(5)
 
-            self.click_point(Location.NEW_SKILL_CONTINUE.value)
-            time.sleep(4)
-
+                self.click_point(Location.NEW_SKILL_CONTINUE.value)
+                time.sleep(4)
+                
             evolution_path = self.base_dir / self.config.evolution_image_name
             if evolution_path.exists():
                 evolution = pyautogui.locateOnScreen(
