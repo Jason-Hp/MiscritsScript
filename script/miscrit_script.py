@@ -27,6 +27,7 @@ class ScriptConfig:
     close_image_name: str = "close.png"
     safe_ability_location: tuple[int, int] = (550, 735)
     enable_bonus: bool = False
+    level_up_count: int = 3
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,24 @@ class MiscritsAutomation:
         self.count_store = count_store
         self.capture_policy = capture_policy
         self.base_dir = Path(__file__).resolve().parent
+        if not 0 <= self.config.level_up_count <= 3:
+            raise ValueError("level_up_count must be between 0 and 3.")
+
+    def level_up_ready_locations(self) -> tuple[tuple[int, int, int, int], ...]:
+        locations = (
+            Coordinates.LEVEL_UP_TOP_RIGHT.value,
+            Coordinates.LEVEL_UP_BOTTOM_LEFT.value,
+            Coordinates.LEVEL_UP_BOTTOM_RIGHT.value,
+        )
+        return locations[: self.config.level_up_count]
+
+    def level_up_train_locations(self) -> tuple[tuple[int, int], ...]:
+        locations = (
+            Location.FIRST_MISCRIT_TO_TRAIN.value,
+            Location.SECOND_MISCRIT_TO_TRAIN.value,
+            Location.THIRD_MISCRIT_TO_TRAIN.value,
+        )
+        return locations[: self.config.level_up_count]
 
     def click(self, x: int, y: int) -> None:
         pyautogui.moveTo(x, y)
@@ -129,11 +148,7 @@ class MiscritsAutomation:
         self.click_point(Location.TRAIN_LOCATION.value)
         time.sleep(2)
 
-        for miscrit_location in (
-            Location.FIRST_MISCRIT_TO_TRAIN.value,
-            Location.SECOND_MISCRIT_TO_TRAIN.value,
-            Location.THIRD_MISCRIT_TO_TRAIN.value,
-        ):
+        for miscrit_location in self.level_up_train_locations():
             self.click_point(miscrit_location)
             time.sleep(1)
 
@@ -164,8 +179,9 @@ class MiscritsAutomation:
                 else:
                     print("no evolution")
 
-        self.click_point(Location.EXIT_TRAIN.value)
-        time.sleep(3)
+        if self.config.level_up_count:
+            self.click_point(Location.EXIT_TRAIN.value)
+            time.sleep(3)
 
     def report_find_action(self, count: int) -> None:
         action = Action(
@@ -266,12 +282,9 @@ class MiscritsAutomation:
                 self.do_battle()
 
             time.sleep(5)
-            all_ready = self.check_all_level_up_ready(
-                (
-                    Coordinates.LEVEL_UP_BOTTOM_RIGHT.value,
-                    Coordinates.LEVEL_UP_BOTTOM_LEFT.value,
-                    Coordinates.LEVEL_UP_TOP_RIGHT.value,
-                )
+            level_up_locations = self.level_up_ready_locations()
+            all_ready = bool(level_up_locations) and self.check_all_level_up_ready(
+                level_up_locations
             )
             self.click_point(Location.CONTINUE_AFTER_BATTLE.value)
             time.sleep(5)
