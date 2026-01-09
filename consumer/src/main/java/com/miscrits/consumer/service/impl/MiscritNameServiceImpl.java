@@ -6,7 +6,8 @@ import com.miscrits.consumer.alert.AlertInformation;
 import com.miscrits.consumer.entity.MiscritEntity;
 import com.miscrits.consumer.pojo.MiscritInfo;
 import com.miscrits.consumer.repository.MiscritRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -14,13 +15,13 @@ import java.util.Map;
 import static com.miscrits.consumer.alert.AlertInformation.GENERAL_MESSAGE;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MiscritNameServiceImpl implements com.miscrits.consumer.service.Service {
 
     private final Map<String, Alert> alertMap;
 
-    //TODO wire in from args
-    private final String targetMiscrit = "papa";
+    @Value("${miscrits.target-miscrit}")
+    private String targetMiscrit;
 
     private final Gson gson;
 

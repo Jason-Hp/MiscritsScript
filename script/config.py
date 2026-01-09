@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
 class ScriptConfig:
     """Configuration values for the Miscrits automation script."""
 
-    target_miscrit: str = "papa"
+    target_miscrit: str = field(default_factory=lambda: os.getenv("MISCRITS_TARGET_MISCRIT", "papa"))
     location_to_find: tuple[int, int] = (653, 239)
     battle_ability_name: str = "bastion"
     ready_to_train_text: str = "ready to train"
