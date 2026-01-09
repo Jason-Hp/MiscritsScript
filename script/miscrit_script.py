@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import time
 from dataclasses import dataclass
 from importlib import util as importlib_util
@@ -281,6 +282,16 @@ class MiscritsAutomation:
 
             self.close_overlays()
 
+
+def _run_startup_tasks(base_dir: Path) -> None:
+    commands = (
+        ["docker", "compose", "start"],
+        ["bash", str(base_dir / "create-kafka-topics.sh")],
+    )
+    for command in commands:
+        subprocess.run(command, check=True, cwd=base_dir)
+
+
 def main() -> None:
     if importlib_util.find_spec("tkinter") is None:
         raise SystemExit(
@@ -289,6 +300,8 @@ def main() -> None:
     from gui import prompt_for_config
 
     config = prompt_for_config(ScriptConfig())
+    base_dir = Path(__file__).resolve().parents[1]
+    _run_startup_tasks(base_dir)
     producer = MiscritsKafkaProducer()
     count_store = CountStore(Path(__file__).with_name("count.txt"))
     automation = MiscritsAutomation(
