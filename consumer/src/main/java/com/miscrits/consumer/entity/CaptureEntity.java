@@ -1,17 +1,18 @@
 package com.miscrits.consumer.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "capture")
 public class CaptureEntity {
-
-    public CaptureEntity() {
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
