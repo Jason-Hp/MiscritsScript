@@ -11,7 +11,7 @@ import pytesseract
 from rapidfuzz import fuzz
 
 from coordinates import Coordinates
-from kafka_producer import Action, MiscritInfo, MiscritsKafkaProducer, example_publish
+from kafka_producer import Action, MiscritInfo, MiscritsKafkaProducer
 from location import Location
 
 
@@ -25,6 +25,7 @@ class ScriptConfig:
     ready_to_train_text: str = "ready to train"
     evolution_image_name: str = "evolution.png"
     close_image_name: str = "close.png"
+    safe_ability_location: tuple[int, int] = (550, 735)
 
 
 @dataclass(frozen=True)
@@ -247,7 +248,7 @@ class MiscritsAutomation:
                     print("FOUND!")
                     time.sleep(2)
                     while True:
-                        self.click_point(Location.SAFE_ABILITY_LOCATION.value)
+                        self.click_point(self.config.safe_ability_location)
                         time.sleep(10)
 
                 capture_rate = self.parse_percentage()
@@ -277,13 +278,6 @@ class MiscritsAutomation:
                 self.perform_level_up()
 
             self.close_overlays()
-
-
-def publish_kafka_examples() -> None:
-    """Publish example Kafka events for quick integration testing."""
-
-    example_publish()
-
 
 def main() -> None:
     config = ScriptConfig()

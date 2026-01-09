@@ -1,15 +1,10 @@
 from enum import Enum
 
 class Location(Enum):
-    """Enum for (x, y) coordinate locations"""
     BONUS_LOCATION = (705, 750)
     CAPTURE_LOCATION = (673, 192)
     ACCEPT_CAPTURE = (608, 576)
     CONTINUE_AFTER_BATTLE = (675, 685)
-
-    #*UPDATE* Safe ability/No damage ability
-    SAFE_ABILITY_LOCATION = (550, 735)
-    
     ABILITY_TO_USE_LOCATION = (345, 735)
     TRAIN_LOCATION = (593, 109)
     FIRST_MISCRIT_TO_TRAIN = (405, 250)

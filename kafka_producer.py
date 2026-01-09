@@ -102,30 +102,6 @@ class MiscritsKafkaProducer:
         self._producer.flush()
         self._producer.close()
 
-
-def example_publish() -> None:
-    """Example demonstrating how to emit messages to both topics."""
-
-    producer = MiscritsKafkaProducer()
-
-    action = Action(
-        id=1,
-        is_successful=True,
-        description="locust map exploration",
-        name="find",
-    )
-    producer.send_action(action, key="find")
-
-    miscrit_info = MiscritInfo(
-        miscrit_name="Papa",
-        is_high_grade_or_rare=True,
-        initial_capture_rate=72,
-    )
-    producer.send_miscrit_info(miscrit_info)
-
-    producer.flush()
-
-
 __all__ = [
     "KafkaSettings",
     "Action",
