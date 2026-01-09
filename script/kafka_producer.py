@@ -20,7 +20,7 @@ class KafkaSettings:
 
     bootstrap_servers: str = "localhost:9092"
     client_id: str = "miscrits-script"
-    find_action_topic: str = "find-action"
+    find_action_topic: str = "action"
     miscrit_info_topic: str = "miscrit-info"
 
     def to_kafka_kwargs(self) -> Dict[str, Any]:
@@ -107,5 +107,4 @@ __all__ = [
     "Action",
     "MiscritInfo",
     "MiscritsKafkaProducer",
-    "example_publish",
 ]

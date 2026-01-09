@@ -285,7 +285,7 @@ class MiscritsAutomation:
 
 def _run_startup_tasks(base_dir: Path) -> None:
     commands = (
-        ["docker", "compose", "start"],
+        ["docker", "compose", "up", "-d"],
         ["bash", str(base_dir / "create-kafka-topics.sh")],
     )
     for command in commands:
