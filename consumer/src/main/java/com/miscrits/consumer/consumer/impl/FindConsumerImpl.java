@@ -14,7 +14,7 @@ public class FindConsumerImpl implements Consumer {
 
     private final Map<String, com.miscrits.consumer.service.Service> serviceMap;
 
-    @KafkaListener(topics = "find-action", groupId = "miscrit-consumer")
+    @KafkaListener(topics = "action", groupId = "miscrit-consumer")
     public void consume(ConsumerRecord<String, String> record) {
         String key = record.key();
         String value = record.value();

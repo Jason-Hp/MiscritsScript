@@ -18,4 +18,4 @@ create_topic() {
 }
 
 create_topic "miscrit-info"
-create_topic "find-action"
+create_topic "action"
